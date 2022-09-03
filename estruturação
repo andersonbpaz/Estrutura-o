@@ -1,13 +1,15 @@
-library(data.table)
-library(dplyr)
-library(tidyverse)
+pacman::p_load(data.table, dplyr, tidyverse)
 
 sinistrosRecife2018Raw <- read.csv2('http://dados.recife.pe.gov.br/dataset/44087d2d-73b5-4ab3-9bd8-78da7436eed1/resource/2485590a-3b35-4ad0-b955-8dfc36b61021/download/acidentes_2018.csv', sep = ';', encoding = 'UTF-8')
 
 #seleção de colunas
 sinistrosRecife2018Selected <- sinistrosRecife2018Raw %>% select("moto", "auto", "vitimas")
 
-#mudando formato 
-sinistrosRecife2018_wider <- sinistrosRecife2018Selected %>% pivot_wider(auto = row, vitimas = new_cases) %>% remove_rownames %>% column_to_rownames(var="moto") 
+# filtra dados para mesmo nro de casos
+result <- sinistrosRecife2018Selected %>% group_by(moto) %>% filter(vitimas == max(vitimas))
+sinistrosRecife2018Selected <- sinistrosRecife2018Selected %>% filter(vitimas<=min(result$vitimas)) 
 
-str(sinistrosRecife2018_wider)
+#mudando formato 
+sinistrosRecife2018_wide <- sinistrosRecife2018Selected %>% pivot_wider(names_from = vitimas, values_from = auto) %>% remove_rownames %>% column_to_rownames(var="moto") 
+
+str(sinistrosRecife2018_wide)
